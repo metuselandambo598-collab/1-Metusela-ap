@@ -14,27 +14,30 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential ccache git zlib1g-dev libssl-dev libffi-dev libsqlite3-dev unzip bzip2 autoconf libtool pkg-config openjdk-17-jdk
+          pip install --upgrade pip
           pip install buildozer cython==0.29.33 --break-system-packages
 
-      - name: Configure Buildozer Specification
+      - name: Build
         run: |
           buildozer init
           sed -i 's/^title = .*/title = 1 Metusela/' buildozer.spec
           sed -i 's/^package.name = .*/package.name = onesela/' buildozer.spec
           sed -i 's/^requirements = .*/requirements = python3, kivy, pillow, setuptools/' buildozer.spec
           sed -i 's/^# android.permissions = .*/android.permissions = READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, READ_MEDIA_IMAGES, READ_MEDIA_VIDEO/' buildozer.spec
-          sed -i 's/^android.api = .*/android.api = 34/' buildozer.spec
+          sed -i 's/^android.api = .*/android.api = 33/' buildozer.spec
           sed -i 's/^android.minapi = .*/android.minapi = 21/' buildozer.spec
           sed -i '/android.minapi = 21/a android.request_legacy_external_storage = True' buildozer.spec
+          # Kukubali leseni za SDK
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          mkdir -p $ANDROID_HOME/licenses
+          echo 24333f8a63b6825ea9c5ffe14f1665a3d706790a > $ANDROID_HOME/licenses/android-sdk-license
+          buildozer -v android debug
 
-      - name: Build APK with Buildozer
-        run: yes | buildozer -v android debug
-
-      - name: Upload APK Artifact
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: 1-Metusela-APK
